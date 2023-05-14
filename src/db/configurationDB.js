@@ -42,19 +42,23 @@ function insert(tableName, columnKeys, columnValues) {
     return new Promise(async callback => {
         let [error, connection] = await createConnection();
         if (!error) {
-            let result = "ok";
+            let resultStatus = "ok";
+            let result = null;
             try {
                 // la query se compone de los valores dinamicos nombre de tabla, los nombres de las columnas con toString() y sus valores relativos. Asi, se pueden añadir los valores necesarios a la tabla. 
                 // se aplica el método map() para generar un array de interrogaciones por cada nombre de la columna. Forma de proteger los datos
-                await connection.query(`INSERT INTO ${tableName} (${columnKeys.toString()}) VALUES (${columnKeys.map(_ => "?").toString()})`, columnValues);
+                result = await connection.query(`INSERT INTO ${tableName} (${columnKeys.toString()}) VALUES (${columnKeys.map(_ => "?").toString()})`, columnValues);
             } catch(error) {
-                result = "ko";
+                resultStatus = "ko";
             } finally {
                 connection.close();
-                return callback( { result } );
+                return callback( { 
+                    entity: result,
+                    status: resultStatus 
+                } );
             }
         }
-        callback({ result: "connection refused" });
+        callback({ resultStatus: "connection refused" });
     });
 }
 
