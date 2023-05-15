@@ -2,7 +2,7 @@ const express = require("express");
 const bodyParser = require("body-parser");
 const {read, insert} =  require("./db/configurationDB");
 
-//a dictionary to associate dbId to its key. 
+// creamos un diccionario para asociar dbIs a su clave
 let projectTypes = {};
 
 // creamos el servidor
@@ -16,24 +16,24 @@ server.use(bodyParser.urlencoded({ extended: true}));
 //endpoint GET de "projects". API
 server.get("/projects", async (request, response) => {
 
-    //load all projects from DB
+    //cargar todos los proyectos del DB
     let result = await read("projects");
 
-    //for each project read from DB, create a JSON response object, changing the keys (from "title" to "projectTitle") and getting the translation value for the projectType
+    // por cada proyecto: leer del DB, crear una respuesta como objeto JSON cambiando las claves/nombres (de "title" a "projectTitle") y obtener el valor traducido para el projectType
     let payload = result.map(project => {
-        //mapping the DB result to something nicer, applying some extra logic such as projectType translation
+        //mapear el DB devuelve un resultado más comprensible, aplicando la lógica en la traducción de projectType
         return {
             id: project.id,
             projectTitle: project.title,
             introduction: project.intro,
             projectDescription: project.description,
             coverUrl: project.cover_url,
-            //using the getProjectTypeValue function to return the value key from the dbId e.g. passing "projectType" = UX_UI it returns "UX/UI designer"
-            projectType: getProjectTypeValue(projectTypes[project.project_type_id])
+            // usamos la función translateProjectTypeValue para devolver la clave desde el dbId. Ej.: "projectType" = UX_UI devuelve "UX/UI designer"
+            projectType: translateProjectTypeValue(projectTypes[project.project_type_id])
         }
     });
 
-    //return the response to the FE view
+    // devolver la respuesta a la vista FE (frontend)
     response.render("projects", { payload });
 });
 
@@ -49,8 +49,8 @@ server.post("/projects", async (request, response) => {
 });
 
 
-//Function that, given a key value for the projectType, returns the associated translation
-function getProjectTypeValue(projectType) {
+// Función para devolver la traducción de la clave de projectType
+function translateProjectTypeValue(projectType) {
     if (projectType === "UX_UI") {
         return "UX/UI Designer";
     } else if (projectType === "WEB_DEV") {
@@ -62,16 +62,16 @@ function getProjectTypeValue(projectType) {
     }
 }
 
-//Function launched when the server starts, it fetches all the project type values from the DB and store it into the "projectTypes" variable set at the top of the file
-// The dictionary can then be used inside the file to load the associated key! e.g. calling projectTypes["1"] it returns "UX_UI"
+//Función lanzada cuando se inicia el servidor, extrae todas las claves del tipo de proyecto del DB y las almacena en la variable "projectTypes", ubicada al inicio del fichero
+// Ahora podemos usar el diccionario dentro del fichero para cargar la clave asociada. LLamamos a projectTypes["1"] y devuelve "UX_UI"
 async function loadProjectTypes() {
     let result = await read("project_type");
     result.forEach(projectType => {
 
-        //store the values inside a dictionary having the dbId as key, and the typeKey as value
+        // almacenamos los valores dentro del diccionario, teniendo dbId como clave y typeKey como valor
         projectTypes[projectType.id] = projectType.value;
     });
-    console.log("project types loaded!")
+    console.log("project types loaded!");
 }
 
 loadProjectTypes();
