@@ -2,9 +2,6 @@ const express = require("express");
 const bodyParser = require("body-parser");
 const {read, insert} =  require("./db/configurationDB");
 
-// creamos un diccionario para asociar dbIs a su clave
-let projectTypes = {};
-
 // creamos el servidor
 const server = express();
 
@@ -12,6 +9,10 @@ const server = express();
 server.set("view engine", "ejs");
 
 server.use(bodyParser.urlencoded({ extended: true}));
+
+// creamos un diccionario para asociar dbIs a su clave
+let projectTypes = {};
+
 
 //endpoint GET de "projects". API
 server.get("/projects", async (request, response) => {
@@ -34,7 +35,9 @@ server.get("/projects", async (request, response) => {
     });
 
     // devolver la respuesta a la vista FE (frontend)
-    response.render("projects", { payload });
+    // response.render("projects", { payload });
+    // probamos send() en lugar de render() para comprobar la diferencia, aun sin tener FE
+    response.send(payload);
 });
 
 server.post("/projects", async (request, response) => {
@@ -75,5 +78,8 @@ async function loadProjectTypes() {
 }
 
 loadProjectTypes();
+
+// test insert function
+// insert("projects",["cover_url","intro","title","description","project_type_id"], ["text", "text1", "proyecto 1", "mi primer proyecto", 2]);
 
 server.listen(7000);
